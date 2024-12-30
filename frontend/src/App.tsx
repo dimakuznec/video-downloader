@@ -8,6 +8,7 @@ const App = () => {
 	const [videoFormatId, setVideoFormatId] = useState<string>('')
 	const [videoInfo, setVideoInfo] = useState<any>(null)
 	const [progress, setProgress] = useState<number>(0)
+	const [message, setMessage] = useState<string>('') // Добавляем состояние для сообщения
 
 	const fetchVideoInfo = async () => {
 		try {
@@ -28,7 +29,7 @@ const App = () => {
 		}
 
 		try {
-			const response = await axios.post(
+			await axios.post(
 				'http://localhost:8000/download_video/',
 				new URLSearchParams({
 					url,
@@ -36,6 +37,8 @@ const App = () => {
 				})
 			)
 
+			setProgress(0)
+			setMessage('')
 			toast.info('Please wait while we download your video.')
 
 			const interval = setInterval(async () => {
@@ -48,9 +51,11 @@ const App = () => {
 				if (progressData.progress >= 100) {
 					clearInterval(interval)
 					toast.success('Download complete! Thank you for using our service.')
+					setMessage('Download complete! Thank you for using our service.')
 				} else if (progressData.progress === -1) {
 					clearInterval(interval)
 					toast.error('Download error.')
+					setMessage('Download error.')
 				}
 			}, 1000)
 		} catch (error: any) {
@@ -88,11 +93,12 @@ const App = () => {
 				</div>
 			)}
 
-			{progress > 0 && (
+			{progress > 0 && progress < 100 && (
 				<progress value={progress} max='100'>
 					{progress}%
 				</progress>
 			)}
+			{message && <p>{message}</p>}
 			<ToastContainer />
 		</div>
 	)
