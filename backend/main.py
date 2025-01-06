@@ -1,8 +1,11 @@
 import logging
 import os
+import shutil
 from fastapi import FastAPI, HTTPException, Form, BackgroundTasks
 from yt_dlp import YoutubeDL
 from fastapi.middleware.cors import CORSMiddleware
+import subprocess
+from datetime import datetime
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
@@ -13,11 +16,11 @@ FFMPEG_PATH = r"C:\\Users\\kud35\\Downloads\\ffmpeg-master-latest-win64-gpl-shar
 os.environ["PATH"] = FFMPEG_PATH + os.pathsep + os.environ.get("PATH", "")
 
 # Download directory
-DOWNLOAD_DIR = "downloads"
+DOWNLOAD_DIR = os.path.expanduser("~/Downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-# Cookies file
-COOKIES_FILE = r"cookies.txt"
+# Путь к вашему скрипту обхода блокировки
+ZAPRET_SCRIPT_PATH = r"C:\Users\kud35\Downloads\zapret-discord-youtube-main\general"
 
 # FastAPI app
 app = FastAPI()
@@ -32,18 +35,12 @@ app.add_middleware(
 )
 
 # Global variable to store download progress
-download_progress = {"progress": 0}
+download_progress = {"progress": 0, "message": ""}
 
 # Helper function to fetch video info
 def get_video_info(url: str):
     try:
-        ydl_opts = {
-            "quiet": True,
-            "cookiefile": COOKIES_FILE,
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-            },
-        }
+        ydl_opts = {"quiet": True}
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             formats = [
@@ -51,8 +48,6 @@ def get_video_info(url: str):
                     "format_id": f["format_id"],
                     "quality": f.get("format_note", "N/A"),
                     "ext": f["ext"],
-                    "vcodec": f.get("vcodec", ""),
-                    "acodec": f.get("acodec", ""),
                 }
                 for f in info["formats"]
             ]
@@ -77,40 +72,44 @@ async def download_video(
     video_format_id: str = Form(...),
 ):
     global download_progress
-    download_progress = {"progress": 0}  # Reset progress before starting download
+    download_progress = {"progress": 0, "message": "Загрузка началась"}  # Reset progress
 
     def download_task(url, video_format_id):
         def progress_hook(d):
             global download_progress
             if d['status'] == 'downloading':
                 download_progress['progress'] = d['downloaded_bytes'] / d['total_bytes'] * 100
-                logger.info(f"Downloading: {download_progress['progress']:.2f}% complete")
+                download_progress['message'] = "Видео загружается"
+                logger.info(f"Progress: {download_progress['progress']:.2f}%")
             elif d['status'] == 'finished':
-                logger.info("Download finished! Thank you for using our service!")
                 download_progress['progress'] = 100
+                download_progress['message'] = "Видео успешно загружено"
 
         try:
             ydl_opts = {
                 "format": f"{video_format_id}+bestaudio[ext=m4a]/best[ext=mp4]",
-                "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s.%(ext)s"),
+                "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s_%(timestamp)s.%(ext)s"),
                 "merge_output_format": "mp4",
-                "http_headers": {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-                },
-                "cookiefile": COOKIES_FILE,
-                "progress_hooks": [progress_hook]
+                "progress_hooks": [progress_hook],
             }
+
+            # Run bypass script
+            subprocess.run([ZAPRET_SCRIPT_PATH], shell=True)
 
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
 
+            # Добавление благодарности пользователю
+            download_progress['message'] = "Спасибо, что воспользовались нашим сервисом! Загрузка успешно завершена."
+
         except Exception as e:
             logger.error(f"Download error: {e}")
-            download_progress['progress'] = -1  # Установим прогресс в -1 в случае ошибки
+            download_progress['progress'] = -1
+            download_progress['message'] = "Ошибка при загрузке. Однако, проверьте загруженные файлы."
 
     background_tasks.add_task(download_task, url, video_format_id)
-    return {"message": "Download started in background. Please wait while we download your video.", "progress": 0}
+    return {"message": "Загрузка начата в фоне. Пожалуйста, ожидайте."}
 
-@app.get("/download_progress/")
-async def get_download_progress():
+@app.get("/progress/")
+async def get_progress():
     return download_progress

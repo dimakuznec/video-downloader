@@ -1,3 +1,14 @@
+import {
+	Alert,
+	Box,
+	Button,
+	LinearProgress,
+	MenuItem,
+	Select,
+	Snackbar,
+	TextField,
+	Typography,
+} from '@mui/material'
 import axios from 'axios'
 import { useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
@@ -8,7 +19,9 @@ const App = () => {
 	const [videoFormatId, setVideoFormatId] = useState<string>('')
 	const [videoInfo, setVideoInfo] = useState<any>(null)
 	const [progress, setProgress] = useState<number>(0)
-	const [message, setMessage] = useState<string>('') // Добавляем состояние для сообщения
+	const [message, setMessage] = useState<string>('')
+	const [loading, setLoading] = useState<boolean>(false)
+	const [completed, setCompleted] = useState<boolean>(false)
 
 	const fetchVideoInfo = async () => {
 		try {
@@ -17,6 +30,7 @@ const App = () => {
 				new URLSearchParams({ url })
 			)
 			setVideoInfo(response.data)
+			toast.success('Video information fetched successfully.')
 		} catch (error: any) {
 			toast.error('Error fetching video info.')
 		}
@@ -29,6 +43,8 @@ const App = () => {
 		}
 
 		try {
+			setLoading(true)
+			setCompleted(false)
 			await axios.post(
 				'http://localhost:8000/download_video/',
 				new URLSearchParams({
@@ -38,69 +54,132 @@ const App = () => {
 			)
 
 			setProgress(0)
-			setMessage('')
+			setMessage('Starting download...')
 			toast.info('Please wait while we download your video.')
 
 			const interval = setInterval(async () => {
-				const progressResponse = await axios.get(
-					'http://localhost:8000/download_progress/'
-				)
-				const progressData = progressResponse.data
-				setProgress(progressData.progress)
+				try {
+					const progressResponse = await axios.get(
+						'http://localhost:8000/progress/'
+					)
+					const progressData = progressResponse.data
+					setProgress(progressData.progress)
+					setMessage(progressData.message)
 
-				if (progressData.progress >= 100) {
+					if (progressData.progress >= 100) {
+						clearInterval(interval)
+						setLoading(false)
+						setCompleted(true)
+						toast.success('Download complete! Thank you for using our service.')
+					} else if (progressData.progress === -1) {
+						clearInterval(interval)
+						setLoading(false)
+						toast.error('Download error.')
+					}
+				} catch {
 					clearInterval(interval)
-					toast.success('Download complete! Thank you for using our service.')
-					setMessage('Download complete! Thank you for using our service.')
-				} else if (progressData.progress === -1) {
-					clearInterval(interval)
-					toast.error('Download error.')
-					setMessage('Download error.')
+					setLoading(false)
+					toast.error('Error fetching download progress.')
 				}
 			}, 1000)
 		} catch (error: any) {
+			setLoading(false)
 			toast.error('Error during download.')
 		}
 	}
 
+	const cancelDownload = () => {
+		setLoading(false)
+		setProgress(0)
+		setMessage('Download cancelled.')
+		toast.info('Download cancelled.')
+	}
+
 	return (
-		<div>
-			<h1>Video Downloader</h1>
-			<input
-				type='text'
+		<Box sx={{ maxWidth: 600, margin: 'auto', padding: 4 }}>
+			<Typography variant='h4' gutterBottom>
+				Video Downloader
+			</Typography>
+
+			<TextField
+				fullWidth
+				variant='outlined'
+				label='Enter video URL'
 				value={url}
 				onChange={e => setUrl(e.target.value)}
-				placeholder='Enter video URL'
+				sx={{ mb: 2 }}
 			/>
-			<button onClick={fetchVideoInfo}>Fetch Video Info</button>
+
+			<Button
+				variant='contained'
+				color='primary'
+				onClick={fetchVideoInfo}
+				sx={{ mb: 2 }}
+				disabled={!url}
+			>
+				Fetch Video Info
+			</Button>
 
 			{videoInfo && (
-				<div>
-					<h2>{videoInfo.title}</h2>
-					<label>Select Video Format:</label>
-					<select
-						onChange={e => setVideoFormatId(e.target.value)}
+				<Box>
+					<Typography variant='h6'>{videoInfo.title}</Typography>
+					<Typography variant='subtitle1' sx={{ mb: 2 }}>
+						Select Video Format:
+					</Typography>
+					<Select
+						fullWidth
 						value={videoFormatId}
+						onChange={e => setVideoFormatId(e.target.value)}
+						displayEmpty
+						sx={{ mb: 2 }}
 					>
+						<MenuItem value=''>Select Format</MenuItem>
 						{videoInfo.formats.map((format: any) => (
-							<option key={format.format_id} value={format.format_id}>
+							<MenuItem key={format.format_id} value={format.format_id}>
 								{format.quality} ({format.ext})
-							</option>
+							</MenuItem>
 						))}
-					</select>
+					</Select>
 
-					<button onClick={handleDownload}>Download</button>
-				</div>
+					<Button
+						variant='contained'
+						color='primary'
+						onClick={handleDownload}
+						sx={{ mr: 2 }}
+						disabled={loading}
+					>
+						{loading ? 'Downloading...' : 'Download'}
+					</Button>
+					<Button
+						variant='outlined'
+						color='secondary'
+						onClick={cancelDownload}
+						disabled={!loading}
+					>
+						Cancel
+					</Button>
+				</Box>
 			)}
 
-			{progress > 0 && progress < 100 && (
-				<progress value={progress} max='100'>
-					{progress}%
-				</progress>
+			{loading && (
+				<Box sx={{ mt: 2 }}>
+					<LinearProgress variant='determinate' value={progress} />
+					<Typography sx={{ mt: 1 }}>{message}</Typography>
+				</Box>
 			)}
-			{message && <p>{message}</p>}
+
+			{completed && (
+				<Snackbar
+					open={completed}
+					autoHideDuration={6000}
+					onClose={() => setCompleted(false)}
+				>
+					<Alert severity='success'>Download complete!</Alert>
+				</Snackbar>
+			)}
+
 			<ToastContainer />
-		</div>
+		</Box>
 	)
 }
 
