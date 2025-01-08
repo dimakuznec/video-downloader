@@ -22,6 +22,7 @@ const App = () => {
 	const [message, setMessage] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
 	const [completed, setCompleted] = useState<boolean>(false)
+	const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
 
 	const fetchVideoInfo = async () => {
 		try {
@@ -57,31 +58,37 @@ const App = () => {
 			setMessage('Starting download...')
 			toast.info('Please wait while we download your video.')
 
-			const interval = setInterval(async () => {
+			const id = setInterval(async () => {
 				try {
 					const progressResponse = await axios.get(
 						'http://localhost:8000/progress/'
 					)
 					const progressData = progressResponse.data
 					setProgress(progressData.progress)
-					setMessage(progressData.message)
+					setMessage(
+						`${progressData.message} (${progressData.progress.toFixed(2)}%)`
+					)
 
-					if (progressData.progress >= 100) {
-						clearInterval(interval)
+					if (progressData.progress >= 100 || progressData.completed) {
+						clearInterval(id)
 						setLoading(false)
 						setCompleted(true)
-						toast.success('Download complete! Thank you for using our service.')
+						toast.success(
+							'Спасибо, что воспользовались нашим сервисом! Загрузка завершена.'
+						)
 					} else if (progressData.progress === -1) {
-						clearInterval(interval)
+						clearInterval(id)
 						setLoading(false)
-						toast.error('Download error.')
+						toast.error('Ошибка загрузки.')
 					}
-				} catch {
-					clearInterval(interval)
+				} catch (error) {
+					clearInterval(id)
 					setLoading(false)
-					toast.error('Error fetching download progress.')
+					toast.error('Ошибка при получении прогресса загрузки.')
 				}
-			}, 1000)
+			}, 500) // Изменение интервала на 0,5 секунд
+
+			setIntervalId(id)
 		} catch (error: any) {
 			setLoading(false)
 			toast.error('Error during download.')
@@ -89,6 +96,9 @@ const App = () => {
 	}
 
 	const cancelDownload = () => {
+		if (intervalId) {
+			clearInterval(intervalId)
+		}
 		setLoading(false)
 		setProgress(0)
 		setMessage('Download cancelled.')
@@ -139,6 +149,14 @@ const App = () => {
 								{format.quality} ({format.ext})
 							</MenuItem>
 						))}
+						<MenuItem value='bestvideo[height<=1440][ext=mp4]'>
+							1440p (mp4)
+						</MenuItem>
+						<MenuItem value='bestvideo[height<=2160][ext=mp4]'>
+							2160p (mp4)
+						</MenuItem>
+						<MenuItem value='bestaudio[ext=mp3]'>MP3 (Audio)</MenuItem>
+						<MenuItem value='bestaudio[ext=m4a]'>M4A (Audio)</MenuItem>
 					</Select>
 
 					<Button
@@ -174,11 +192,22 @@ const App = () => {
 					autoHideDuration={6000}
 					onClose={() => setCompleted(false)}
 				>
-					<Alert severity='success'>Download complete!</Alert>
+					<Alert severity='success'>
+						Спасибо, что воспользовались нашим сервисом! Загрузка завершена.
+					</Alert>
 				</Snackbar>
 			)}
 
 			<ToastContainer />
+
+			<Button
+				variant='contained'
+				color='primary'
+				onClick={() => window.location.reload()}
+				sx={{ mt: 2 }}
+			>
+				Обновить страницу
+			</Button>
 		</Box>
 	)
 }

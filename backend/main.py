@@ -16,7 +16,7 @@ FFMPEG_PATH = r"C:\\Users\\kud35\\Downloads\\ffmpeg-master-latest-win64-gpl-shar
 os.environ["PATH"] = FFMPEG_PATH + os.pathsep + os.environ.get("PATH", "")
 
 # Download directory
-DOWNLOAD_DIR = os.path.expanduser("~/Downloads")
+DOWNLOAD_DIR = os.path.join(os.path.expanduser("~"), "Downloads")  # Системная папка загрузок
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 # Путь к вашему скрипту обхода блокировки
@@ -78,7 +78,8 @@ async def download_video(
         def progress_hook(d):
             global download_progress
             if d['status'] == 'downloading':
-                download_progress['progress'] = d['downloaded_bytes'] / d['total_bytes'] * 100
+                if 'total_bytes' in d and d['total_bytes'] is not None:
+                    download_progress['progress'] = d['downloaded_bytes'] / d['total_bytes'] * 100
                 download_progress['message'] = "Видео загружается"
                 logger.info(f"Progress: {download_progress['progress']:.2f}%")
             elif d['status'] == 'finished':
