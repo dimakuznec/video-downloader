@@ -79,11 +79,12 @@ async def download_video(
     background_tasks: BackgroundTasks,
     url: str = Form(...),
     video_format_id: str = Form(...),
+    download_audio: bool = Form(False),  # Новый параметр для загрузки аудио
 ):
     global download_progress
     download_progress = {"progress": 0, "message": "Загрузка началась"}  # Reset progress
 
-    def download_task(url, video_format_id):
+    def download_task(url, video_format_id, download_audio):
         def progress_hook(d):
             global download_progress
             if d['status'] == 'downloading':
@@ -108,15 +109,6 @@ async def download_video(
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0"
                 }
             }
-            # Загрузка аудио
-            ydl_opts_audio = {
-                "format": "bestaudio",
-                "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s_%(timestamp)s_audio.%(ext)s"),
-                "progress_hooks": [progress_hook],
-                "http_headers": {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0"
-                }
-            }
 
             subprocess.run([ZAPRET_SCRIPT_PATH], shell=True)
 
@@ -128,9 +120,20 @@ async def download_video(
                 ydl_video.download([url])
                 video_file = os.path.join(DOWNLOAD_DIR, f"{info['title']}_{info['timestamp']}_video.{info['ext']}")
 
-            with YoutubeDL(ydl_opts_audio) as ydl_audio:
-                ydl_audio.download([url])
-                audio_file = os.path.join(DOWNLOAD_DIR, f"{info['title']}_{info['timestamp']}_audio.{info['ext']}")
+            if download_audio:
+                # Загрузка аудио, если необходимо
+                ydl_opts_audio = {
+                    "format": "bestaudio",
+                    "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s_%(timestamp)s_audio.%(ext)s"),
+                    "progress_hooks": [progress_hook],
+                    "http_headers": {
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0"
+                    }
+                }
+
+                with YoutubeDL(ydl_opts_audio) as ydl_audio:
+                    ydl_audio.download([url])
+                    audio_file = os.path.join(DOWNLOAD_DIR, f"{info['title']}_{info['timestamp']}_audio.{info['ext']}")
 
             output_file = os.path.join(DOWNLOAD_DIR, f"final_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
 
@@ -144,7 +147,7 @@ async def download_video(
             download_progress['progress'] = -1
             download_progress['message'] = "Ошибка при загрузке. Однако, проверьте загруженные файлы."
 
-    background_tasks.add_task(download_task, url, video_format_id)
+    background_tasks.add_task(download_task, url, video_format_id, download_audio)
     return {"message": "Загрузка начата в фоне. Пожалуйста, ожидайте."}
 
 @app.get("/progress/")

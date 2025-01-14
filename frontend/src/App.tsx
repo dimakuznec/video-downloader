@@ -2,6 +2,8 @@ import {
 	Alert,
 	Box,
 	Button,
+	Checkbox,
+	FormControlLabel,
 	LinearProgress,
 	MenuItem,
 	Select,
@@ -28,6 +30,7 @@ interface Translations {
 	cancel: string
 	downloadComplete: string
 	refresh: string
+	downloadAudio: string
 }
 
 const translations: Record<string, Translations> = {
@@ -42,6 +45,7 @@ const translations: Record<string, Translations> = {
 		cancel: 'Cancel',
 		downloadComplete: 'Thank you for using our service! Download complete.',
 		refresh: 'Refresh page',
+		downloadAudio: 'Download audio file separately?',
 	},
 	ru: {
 		title: 'Скачиватель Видео',
@@ -55,6 +59,7 @@ const translations: Record<string, Translations> = {
 		downloadComplete:
 			'Спасибо, что воспользовались нашим сервисом! Загрузка завершена.',
 		refresh: 'Обновить страницу',
+		downloadAudio: 'Скачать аудиофайл отдельно?',
 	},
 	zh: {
 		title: '视频下载器',
@@ -67,6 +72,7 @@ const translations: Record<string, Translations> = {
 		cancel: '取消',
 		downloadComplete: '感谢使用我们的服务！下载完成。',
 		refresh: '刷新页面',
+		downloadAudio: '单独下载音频文件？',
 	},
 }
 
@@ -93,6 +99,7 @@ const App = () => {
 	const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
 	const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
 	const [language, setLanguage] = useState<string>('en')
+	const [downloadAudio, setDownloadAudio] = useState<boolean>(false)
 	const t = translations[language]
 
 	useEffect(() => {
@@ -143,6 +150,7 @@ const App = () => {
 				new URLSearchParams({
 					url,
 					video_format_id: videoFormatId,
+					download_audio: downloadAudio.toString(),
 				})
 			)
 
@@ -253,6 +261,16 @@ const App = () => {
 						))}
 					</Select>
 
+					<FormControlLabel
+						control={
+							<Checkbox
+								checked={downloadAudio}
+								onChange={() => setDownloadAudio(!downloadAudio)}
+							/>
+						}
+						label={t.downloadAudio}
+					/>
+
 					<Button
 						variant='contained'
 						color='primary'
@@ -279,7 +297,6 @@ const App = () => {
 					<Typography sx={{ mt: 1 }}>{message}</Typography>
 				</Box>
 			)}
-
 			{completed && (
 				<Snackbar
 					open={completed}
