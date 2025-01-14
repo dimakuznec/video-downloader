@@ -37,6 +37,14 @@ app.add_middleware(
 # Global variable to store download progress
 download_progress = {"progress": 0, "message": ""}
 
+# Helper function to update yt-dlp
+def update_yt_dlp():
+    try:
+        subprocess.run(["pip", "install", "--upgrade", "yt-dlp"], check=True)
+        logger.info("yt-dlp обновлена успешно!")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Ошибка при обновлении yt-dlp: {e}")
+
 # Helper function to fetch video info
 def get_video_info(url: str):
     try:
@@ -88,6 +96,9 @@ async def download_video(
                 download_progress['message'] = "Успешно загружено"
 
         try:
+            # Обновление yt-dlp перед загрузкой
+            update_yt_dlp()
+
             # Загрузка видео
             ydl_opts_video = {
                 "format": f"{video_format_id}+bestaudio/best",
