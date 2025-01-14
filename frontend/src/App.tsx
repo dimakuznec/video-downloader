@@ -10,19 +10,111 @@ import {
 	Typography,
 } from '@mui/material'
 import axios from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import LanguageSwitcher from './components/languageSwitcher/LanguageSwitcher'
+import ThemeSwitcher from './components/ThemeSwitcher/ThemeSwitcher'
+import './index.css'
+
+interface Translations {
+	title: string
+	enterUrl: string
+	fetchVideoInfo: string
+	selectVideoFormat: string
+	selectFormat: string
+	download: string
+	downloading: string
+	cancel: string
+	downloadComplete: string
+	refresh: string
+}
+
+const translations: Record<string, Translations> = {
+	en: {
+		title: 'Video Downloader',
+		enterUrl: 'Enter video URL',
+		fetchVideoInfo: 'Fetch Video Info',
+		selectVideoFormat: 'Select Video Format:',
+		selectFormat: 'Select Format',
+		download: 'Download',
+		downloading: 'Downloading...',
+		cancel: 'Cancel',
+		downloadComplete: 'Thank you for using our service! Download complete.',
+		refresh: 'Refresh page',
+	},
+	ru: {
+		title: 'Скачиватель Видео',
+		enterUrl: 'Введите URL видео',
+		fetchVideoInfo: 'Получить информацию о видео',
+		selectVideoFormat: 'Выберите формат видео:',
+		selectFormat: 'Выберите формат',
+		download: 'Скачать',
+		downloading: 'Скачивание...',
+		cancel: 'Отмена',
+		downloadComplete:
+			'Спасибо, что воспользовались нашим сервисом! Загрузка завершена.',
+		refresh: 'Обновить страницу',
+	},
+	zh: {
+		title: '视频下载器',
+		enterUrl: '输入视频网址',
+		fetchVideoInfo: '获取视频信息',
+		selectVideoFormat: '选择视频格式:',
+		selectFormat: '选择格式',
+		download: '下载',
+		downloading: '下载中...',
+		cancel: '取消',
+		downloadComplete: '感谢使用我们的服务！下载完成。',
+		refresh: '刷新页面',
+	},
+}
+
+interface VideoFormat {
+	format_id: string
+	quality: string
+	ext: string
+	resolution: number | string
+}
+
+interface VideoInfo {
+	title: string
+	formats: VideoFormat[]
+}
 
 const App = () => {
 	const [url, setUrl] = useState<string>('')
 	const [videoFormatId, setVideoFormatId] = useState<string>('')
-	const [videoInfo, setVideoInfo] = useState<any>(null)
+	const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null)
 	const [progress, setProgress] = useState<number>(0)
 	const [message, setMessage] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
 	const [completed, setCompleted] = useState<boolean>(false)
 	const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
+	const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
+	const [language, setLanguage] = useState<string>('en')
+	const t = translations[language]
+
+	useEffect(() => {
+		const savedTheme = localStorage.getItem('theme')
+		if (savedTheme === 'dark') {
+			setIsDarkMode(true)
+			document.body.classList.add('dark-theme')
+		}
+	}, [])
+
+	const toggleTheme = () => {
+		setIsDarkMode(prevMode => {
+			const newMode = !prevMode
+			if (newMode) {
+				localStorage.setItem('theme', 'dark')
+			} else {
+				localStorage.setItem('theme', 'light')
+			}
+			document.body.classList.toggle('dark-theme', newMode)
+			return newMode
+		})
+	}
 
 	const fetchVideoInfo = async () => {
 		try {
@@ -32,7 +124,7 @@ const App = () => {
 			)
 			setVideoInfo(response.data)
 			toast.success('Video information fetched successfully.')
-		} catch (error: any) {
+		} catch (error) {
 			toast.error('Error fetching video info.')
 		}
 	}
@@ -73,25 +165,25 @@ const App = () => {
 						clearInterval(id)
 						setLoading(false)
 						setCompleted(true)
-						toast.success(
-							'Спасибо, что воспользовались нашим сервисом! Загрузка завершена.'
-						)
+						toast.success(t.downloadComplete)
 					} else if (progressData.progress === -1) {
 						clearInterval(id)
 						setLoading(false)
-						toast.error('Ошибка загрузки.')
+						toast.error('Download error. Please try another format.')
 					}
 				} catch (error) {
 					clearInterval(id)
 					setLoading(false)
-					toast.error('Ошибка при получении прогресса загрузки.')
+					toast.error(
+						'Error fetching download progress. Please try another format.'
+					)
 				}
-			}, 500) // Изменение интервала на 0,5 секунд
+			}, 500)
 
 			setIntervalId(id)
-		} catch (error: any) {
+		} catch (error) {
 			setLoading(false)
-			toast.error('Error during download.')
+			toast.error('Error during download. Please try another format.')
 		}
 	}
 
@@ -105,16 +197,26 @@ const App = () => {
 		toast.info('Download cancelled.')
 	}
 
+	const handleLanguageChange = (selectedLanguage: string) => {
+		setLanguage(selectedLanguage)
+	}
+
 	return (
 		<Box sx={{ maxWidth: 600, margin: 'auto', padding: 4 }}>
 			<Typography variant='h4' gutterBottom>
-				Video Downloader
+				{t.title}
 			</Typography>
+
+			<ThemeSwitcher isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+			<LanguageSwitcher
+				currentLanguage={language}
+				onLanguageChange={handleLanguageChange}
+			/>
 
 			<TextField
 				fullWidth
 				variant='outlined'
-				label='Enter video URL'
+				label={t.enterUrl}
 				value={url}
 				onChange={e => setUrl(e.target.value)}
 				sx={{ mb: 2 }}
@@ -127,14 +229,14 @@ const App = () => {
 				sx={{ mb: 2 }}
 				disabled={!url}
 			>
-				Fetch Video Info
+				{t.fetchVideoInfo}
 			</Button>
 
 			{videoInfo && (
 				<Box>
 					<Typography variant='h6'>{videoInfo.title}</Typography>
 					<Typography variant='subtitle1' sx={{ mb: 2 }}>
-						Select Video Format:
+						{t.selectVideoFormat}
 					</Typography>
 					<Select
 						fullWidth
@@ -143,20 +245,12 @@ const App = () => {
 						displayEmpty
 						sx={{ mb: 2 }}
 					>
-						<MenuItem value=''>Select Format</MenuItem>
-						{videoInfo.formats.map((format: any) => (
+						<MenuItem value=''>{t.selectFormat}</MenuItem>
+						{videoInfo.formats.map(format => (
 							<MenuItem key={format.format_id} value={format.format_id}>
-								{format.quality} ({format.ext})
+								{format.quality} ({format.ext}) - {format.resolution}p
 							</MenuItem>
 						))}
-						<MenuItem value='bestvideo[height<=1440][ext=mp4]'>
-							1440p (mp4)
-						</MenuItem>
-						<MenuItem value='bestvideo[height<=2160][ext=mp4]'>
-							2160p (mp4)
-						</MenuItem>
-						<MenuItem value='bestaudio[ext=mp3]'>MP3 (Audio)</MenuItem>
-						<MenuItem value='bestaudio[ext=m4a]'>M4A (Audio)</MenuItem>
 					</Select>
 
 					<Button
@@ -166,7 +260,7 @@ const App = () => {
 						sx={{ mr: 2 }}
 						disabled={loading}
 					>
-						{loading ? 'Downloading...' : 'Download'}
+						{loading ? t.downloading : t.download}
 					</Button>
 					<Button
 						variant='outlined'
@@ -174,7 +268,7 @@ const App = () => {
 						onClick={cancelDownload}
 						disabled={!loading}
 					>
-						Cancel
+						{t.cancel}
 					</Button>
 				</Box>
 			)}
@@ -192,9 +286,7 @@ const App = () => {
 					autoHideDuration={6000}
 					onClose={() => setCompleted(false)}
 				>
-					<Alert severity='success'>
-						Спасибо, что воспользовались нашим сервисом! Загрузка завершена.
-					</Alert>
+					<Alert severity='success'>{t.downloadComplete}</Alert>
 				</Snackbar>
 			)}
 
@@ -206,7 +298,7 @@ const App = () => {
 				onClick={() => window.location.reload()}
 				sx={{ mt: 2 }}
 			>
-				Обновить страницу
+				{t.refresh}
 			</Button>
 		</Box>
 	)

@@ -16,7 +16,7 @@ FFMPEG_PATH = r"C:\\Users\\kud35\\Downloads\\ffmpeg-master-latest-win64-gpl-shar
 os.environ["PATH"] = FFMPEG_PATH + os.pathsep + os.environ.get("PATH", "")
 
 # Download directory
-DOWNLOAD_DIR = os.path.join(os.path.expanduser("~"), "Downloads")  # Системная папка загрузок
+DOWNLOAD_DIR = os.path.join(os.path.expanduser("~"), "Downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 # Путь к вашему скрипту обхода блокировки
@@ -48,6 +48,7 @@ def get_video_info(url: str):
                     "format_id": f["format_id"],
                     "quality": f.get("format_note", "N/A"),
                     "ext": f["ext"],
+                    "resolution": f.get("height", "N/A")
                 }
                 for f in info["formats"]
             ]
@@ -80,27 +81,51 @@ async def download_video(
             if d['status'] == 'downloading':
                 if 'total_bytes' in d and d['total_bytes'] is not None:
                     download_progress['progress'] = d['downloaded_bytes'] / d['total_bytes'] * 100
-                download_progress['message'] = "Видео загружается"
+                download_progress['message'] = f"Загрузка: {download_progress['progress']:.2f}%"
                 logger.info(f"Progress: {download_progress['progress']:.2f}%")
             elif d['status'] == 'finished':
                 download_progress['progress'] = 100
-                download_progress['message'] = "Видео успешно загружено"
+                download_progress['message'] = "Успешно загружено"
 
         try:
-            ydl_opts = {
-                "format": f"{video_format_id}+bestaudio[ext=m4a]/best[ext=mp4]",
-                "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s_%(timestamp)s.%(ext)s"),
-                "merge_output_format": "mp4",
+            # Загрузка видео
+            ydl_opts_video = {
+                "format": f"{video_format_id}+bestaudio/best",
+                "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s_%(timestamp)s_video.%(ext)s"),
                 "progress_hooks": [progress_hook],
+                "http_headers": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0"
+                }
+            }
+            # Загрузка аудио
+            ydl_opts_audio = {
+                "format": "bestaudio",
+                "outtmpl": os.path.join(DOWNLOAD_DIR, "%(title)s_%(timestamp)s_audio.%(ext)s"),
+                "progress_hooks": [progress_hook],
+                "http_headers": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0"
+                }
             }
 
-            # Run bypass script
             subprocess.run([ZAPRET_SCRIPT_PATH], shell=True)
 
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+            video_file = None
+            audio_file = None
 
-            # Добавление благодарности пользователю
+            with YoutubeDL(ydl_opts_video) as ydl_video:
+                info = ydl_video.extract_info(url, download=False)
+                ydl_video.download([url])
+                video_file = os.path.join(DOWNLOAD_DIR, f"{info['title']}_{info['timestamp']}_video.{info['ext']}")
+
+            with YoutubeDL(ydl_opts_audio) as ydl_audio:
+                ydl_audio.download([url])
+                audio_file = os.path.join(DOWNLOAD_DIR, f"{info['title']}_{info['timestamp']}_audio.{info['ext']}")
+
+            output_file = os.path.join(DOWNLOAD_DIR, f"final_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
+
+            # Объединение видео и аудио с помощью FFmpeg
+            subprocess.run([FFMPEG_PATH, '-i', video_file, '-i', audio_file, '-c:v', 'copy', '-c:a', 'aac', output_file], shell=True)
+
             download_progress['message'] = "Спасибо, что воспользовались нашим сервисом! Загрузка успешно завершена."
 
         except Exception as e:
