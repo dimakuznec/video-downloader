@@ -1,0 +1,38 @@
+.language-switch {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.language-switch .language-label {
+	font-size: 1rem;
+	margin-right: 10px;
+	color: inherit; /* Унаследовать цвет от родителя */
+}
+
+.language-switch .language-select {
+	padding: 5px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font-size: 1rem;
+	background-color: #fff;
+	color: #333;
+	transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.language-switch .language-select:focus {
+	outline: none;
+	border-color: #007bff;
+	box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+body.dark-theme .language-switch .language-select {
+	background-color: #2e2e2e;
+	color: #fff;
+	border: 1px solid #444;
+}
+
+body.dark-theme .language-switch .language-select:focus {
+	border-color: #bb86fc;
+	box-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
+}

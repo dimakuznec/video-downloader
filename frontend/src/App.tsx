@@ -1,20 +1,11 @@
-import {
-	Alert,
-	Box,
-	Button,
-	Checkbox,
-	FormControlLabel,
-	LinearProgress,
-	MenuItem,
-	Select,
-	Snackbar,
-	TextField,
-	Typography,
-} from '@mui/material'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import { AiOutlineClose } from 'react-icons/ai'
+import { BsMoonFill } from 'react-icons/bs'
+import { FaFire } from 'react-icons/fa6'
+import { IoPerson } from 'react-icons/io5'
+import { MdSunny } from 'react-icons/md'
 import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
 import LanguageSwitcher from './components/languageSwitcher/LanguageSwitcher'
 import ThemeSwitcher from './components/ThemeSwitcher/ThemeSwitcher'
 import './index.css'
@@ -31,6 +22,15 @@ interface Translations {
 	downloadComplete: string
 	refresh: string
 	downloadAudio: string
+	features?: string
+	about?: string
+	contact?: string
+	whyChoose?: string
+	feature1?: string
+	feature2?: string
+	feature3?: string
+	aboutTitle?: string
+	aboutText?: string
 }
 
 const translations: Record<string, Translations> = {
@@ -46,6 +46,15 @@ const translations: Record<string, Translations> = {
 		downloadComplete: 'Thank you for using our service! Download complete.',
 		refresh: 'Refresh page',
 		downloadAudio: 'Download audio file separately?',
+		features: 'Features',
+		about: 'About',
+		contact: 'Contact',
+		whyChoose: 'Why choose VideoVault?',
+		feature1: 'Fast and secure downloads',
+		feature2: 'Supports multiple formats',
+		feature3: 'User-friendly interface',
+		aboutTitle: 'About VideoVault',
+		aboutText: 'VideoVault is the ultimate tool for downloading videos.',
 	},
 	ru: {
 		title: 'Скачиватель Видео',
@@ -60,6 +69,15 @@ const translations: Record<string, Translations> = {
 			'Спасибо, что воспользовались нашим сервисом! Загрузка завершена.',
 		refresh: 'Обновить страницу',
 		downloadAudio: 'Скачать аудиофайл отдельно?',
+		features: 'Функции',
+		about: 'О нас',
+		contact: 'Контакты',
+		whyChoose: 'Почему выбирают VideoVault?',
+		feature1: 'Быстрая и безопасная загрузка',
+		feature2: 'Поддержка множества форматов',
+		feature3: 'Удобный интерфейс',
+		aboutTitle: 'О VideoVault',
+		aboutText: 'VideoVault - лучший инструмент для скачивания видео.',
 	},
 	zh: {
 		title: '视频下载器',
@@ -73,6 +91,15 @@ const translations: Record<string, Translations> = {
 		downloadComplete: '感谢使用我们的服务！下载完成。',
 		refresh: '刷新页面',
 		downloadAudio: '单独下载音频文件？',
+		features: '功能',
+		about: '关于',
+		contact: '联系方式',
+		whyChoose: '为什么选择 VideoVault？',
+		feature1: '快速安全的下载',
+		feature2: '支持多种格式',
+		feature3: '用户友好的界面',
+		aboutTitle: '关于 VideoVault',
+		aboutText: 'VideoVault 是终极视频下载工具。',
 	},
 }
 
@@ -100,6 +127,7 @@ const App = () => {
 	const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
 	const [language, setLanguage] = useState<string>('en')
 	const [downloadAudio, setDownloadAudio] = useState<boolean>(false)
+	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 	const t = translations[language]
 
 	useEffect(() => {
@@ -121,6 +149,10 @@ const App = () => {
 			document.body.classList.toggle('dark-theme', newMode)
 			return newMode
 		})
+	}
+
+	const toggleMenu = () => {
+		setIsMenuOpen(prev => !prev)
 	}
 
 	const fetchVideoInfo = async () => {
@@ -210,114 +242,207 @@ const App = () => {
 	}
 
 	return (
-		<Box sx={{ maxWidth: 600, margin: 'auto', padding: 4 }}>
-			<Typography variant='h4' gutterBottom>
-				{t.title}
-			</Typography>
-
-			<ThemeSwitcher isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-			<LanguageSwitcher
-				currentLanguage={language}
-				onLanguageChange={handleLanguageChange}
-			/>
-
-			<TextField
-				fullWidth
-				variant='outlined'
-				label={t.enterUrl}
-				value={url}
-				onChange={e => setUrl(e.target.value)}
-				sx={{ mb: 2 }}
-			/>
-
-			<Button
-				variant='contained'
-				color='primary'
-				onClick={fetchVideoInfo}
-				sx={{ mb: 2 }}
-				disabled={!url}
-			>
-				{t.fetchVideoInfo}
-			</Button>
-
-			{videoInfo && (
-				<Box>
-					<Typography variant='h6'>{videoInfo.title}</Typography>
-					<Typography variant='subtitle1' sx={{ mb: 2 }}>
-						{t.selectVideoFormat}
-					</Typography>
-					<Select
-						fullWidth
-						value={videoFormatId}
-						onChange={e => setVideoFormatId(e.target.value)}
-						displayEmpty
-						sx={{ mb: 2 }}
+		<div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
+			<header className='header'>
+				<div className='container header-content'>
+					<div className='header-left'>
+						<h1 className='logo'>VideoVault</h1>
+					</div>
+					<button
+						id='menu-button'
+						className='menu-button'
+						aria-label='Menu'
+						aria-expanded={isMenuOpen}
+						onClick={toggleMenu}
 					>
-						<MenuItem value=''>{t.selectFormat}</MenuItem>
-						{videoInfo.formats.map(format => (
-							<MenuItem key={format.format_id} value={format.format_id}>
-								{format.quality} ({format.ext}) - {format.resolution}p
-							</MenuItem>
-						))}
-					</Select>
+						{isMenuOpen ? (
+							<AiOutlineClose />
+						) : (
+							<span className='menu-icon'></span>
+						)}
+					</button>
+					<nav className={`nav ${isMenuOpen ? 'show' : ''}`} id='nav-menu'>
+						<ul className='nav-list'>
+							<li>
+								<a href='#features' className='nav-link'>
+									{t.features}
+								</a>
+							</li>
+							<li>
+								<a href='#about' className='nav-link'>
+									{t.about}
+								</a>
+							</li>
+							<li>
+								<a href='#contact' className='nav-link'>
+									{t.contact}
+								</a>
+							</li>
+							<div className='settings'>
+								<div className='theme-toggle'>
+									<button
+										id='theme-button'
+										className='theme-button'
+										onClick={toggleTheme}
+									>
+										{isDarkMode ? <BsMoonFill /> : <MdSunny />}
+									</button>
+								</div>
+								<LanguageSwitcher
+									currentLanguage={language}
+									onLanguageChange={handleLanguageChange}
+								/>
+								<div className='counter'>
+									<p>
+										<FaFire />
+										online:{' '}
+										<span id='current-visitors' className='visitors-count'>
+											0
+										</span>
+									</p>
+									<p>
+										<IoPerson />
+										visited:{' '}
+										<span id='total-visits' className='visits-count'>
+											0
+										</span>
+									</p>
+								</div>
+							</div>
+						</ul>
+					</nav>
+				</div>
+			</header>
 
-					<FormControlLabel
-						control={
-							<Checkbox
-								checked={downloadAudio}
-								onChange={() => setDownloadAudio(!downloadAudio)}
-							/>
-						}
-						label={t.downloadAudio}
+			<main className='main-content'>
+				<div className='content-box'>
+					<h4 className='title'>{t.title}</h4>
+
+					<ThemeSwitcher isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+					<LanguageSwitcher
+						currentLanguage={language}
+						onLanguageChange={handleLanguageChange}
 					/>
 
-					<Button
-						variant='contained'
-						color='primary'
-						onClick={handleDownload}
-						sx={{ mr: 2 }}
-						disabled={loading}
+					<input
+						type='text'
+						className='input-field'
+						placeholder={t.enterUrl}
+						value={url}
+						onChange={e => setUrl(e.target.value)}
+					/>
+
+					<button
+						className='primary-button'
+						onClick={fetchVideoInfo}
+						disabled={!url}
 					>
-						{loading ? t.downloading : t.download}
-					</Button>
-					<Button
-						variant='outlined'
-						color='secondary'
-						onClick={cancelDownload}
-						disabled={!loading}
+						{t.fetchVideoInfo}
+					</button>
+
+					{videoInfo && (
+						<div>
+							<h6 className='subtitle'>{videoInfo.title}</h6>
+							<h6 className='subtitle'>{t.selectVideoFormat}</h6>
+							<select
+								className='select-field'
+								value={videoFormatId}
+								onChange={e => setVideoFormatId(e.target.value)}
+							>
+								<option value=''>{t.selectFormat}</option>
+								{videoInfo.formats.map(format => (
+									<option key={format.format_id} value={format.format_id}>
+										{format.quality} ({format.ext}) - {format.resolution}p
+									</option>
+								))}
+							</select>
+
+							<label className='checkbox-container'>
+								<input
+									type='checkbox'
+									checked={downloadAudio}
+									onChange={() => setDownloadAudio(!downloadAudio)}
+								/>
+								{t.downloadAudio}
+							</label>
+
+							<button
+								className='primary-button'
+								onClick={handleDownload}
+								disabled={loading}
+							>
+								{loading ? t.downloading : t.download}
+							</button>
+							<button
+								className='secondary-button'
+								onClick={cancelDownload}
+								disabled={!loading}
+							>
+								{t.cancel}
+							</button>
+						</div>
+					)}
+
+					{loading && (
+						<div className='progress-container'>
+							<div
+								className='progress-bar'
+								style={{ width: `${progress}%` }}
+							></div>
+							<p>{message}</p>
+						</div>
+					)}
+					{completed && (
+						<div className='snackbar'>
+							<div className='alert-success'>{t.downloadComplete}</div>
+						</div>
+					)}
+
+					<ToastContainer />
+
+					<button
+						className='primary-button'
+						onClick={() => window.location.reload()}
 					>
-						{t.cancel}
-					</Button>
-				</Box>
-			)}
+						{t.refresh}
+					</button>
+				</div>
 
-			{loading && (
-				<Box sx={{ mt: 2 }}>
-					<LinearProgress variant='determinate' value={progress} />
-					<Typography sx={{ mt: 1 }}>{message}</Typography>
-				</Box>
-			)}
-			{completed && (
-				<Snackbar
-					open={completed}
-					autoHideDuration={6000}
-					onClose={() => setCompleted(false)}
-				>
-					<Alert severity='success'>{t.downloadComplete}</Alert>
-				</Snackbar>
-			)}
+				<section id='features' className='features'>
+					<div className='container'>
+						<h3 className='section-title'>{t.whyChoose}</h3>
+						<ul className='features-list'>
+							<li>{t.feature1}</li>
+							<li>{t.feature2}</li>
+							<li>{t.feature3}</li>
+						</ul>
+					</div>
+				</section>
 
-			<ToastContainer />
+				<section id='about' className='about'>
+					<div className='container'>
+						<h3 className='section-title'>{t.aboutTitle}</h3>
+						<p>{t.aboutText}</p>
+					</div>
+				</section>
 
-			<Button
-				variant='contained'
-				color='primary'
-				onClick={() => window.location.reload()}
-				sx={{ mt: 2 }}
-			>
-				{t.refresh}
-			</Button>
-		</Box>
+				<section id='contact' className='contact'>
+					<div className='container'>
+						<h3 className='section-title'>{t.contact}</h3>
+						<p>
+							Have questions? Reach out to us at{' '}
+							<a href='mailto:support@videovault.com'>support@videovault.com</a>
+						</p>
+					</div>
+				</section>
+			</main>
+
+			<footer className='footer'>
+				<div className='container'>
+					<p>© 2025 VideoVault. All rights reserved.</p>
+				</div>
+			</footer>
+		</div>
 	)
 }
 
