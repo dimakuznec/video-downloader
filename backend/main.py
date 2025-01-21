@@ -7,6 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 from datetime import datetime
 
+# Импортируем наш новый компонент
+from counter import counter_app
+
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,6 +27,9 @@ ZAPRET_SCRIPT_PATH = r"C:\Users\kud35\Downloads\zapret-discord-youtube-main\gene
 
 # FastAPI app
 app = FastAPI()
+
+# Монтируем наш новый компонент как подапп
+app.mount("/counter", counter_app)
 
 # CORS middleware
 app.add_middleware(

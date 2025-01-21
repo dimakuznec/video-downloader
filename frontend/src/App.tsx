@@ -2,12 +2,11 @@ import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { AiOutlineClose } from 'react-icons/ai'
 import { BsMoonFill } from 'react-icons/bs'
-import { FaFire } from 'react-icons/fa6'
-import { IoPerson } from 'react-icons/io5'
 import { MdSunny } from 'react-icons/md'
 import { ToastContainer, toast } from 'react-toastify'
 import LanguageSwitcher from './components/languageSwitcher/LanguageSwitcher'
-import ThemeSwitcher from './components/ThemeSwitcher/ThemeSwitcher'
+import OnlineCounter from './components/OnlineCounter/OnlineCounter'
+import VideoPlayerInstructions from './components/VideoPlayerInstructions/VideoPlayerInstructions'
 import './index.css'
 
 interface Translations {
@@ -25,6 +24,7 @@ interface Translations {
 	features?: string
 	about?: string
 	contact?: string
+	instructions?: string
 	whyChoose?: string
 	feature1?: string
 	feature2?: string
@@ -49,6 +49,7 @@ const translations: Record<string, Translations> = {
 		features: 'Features',
 		about: 'About',
 		contact: 'Contact',
+		instructions: 'Instructions',
 		whyChoose: 'Why choose VideoVault?',
 		feature1: 'Fast and secure downloads',
 		feature2: 'Supports multiple formats',
@@ -72,6 +73,7 @@ const translations: Record<string, Translations> = {
 		features: 'Функции',
 		about: 'О нас',
 		contact: 'Контакты',
+		instructions: 'Инструкции',
 		whyChoose: 'Почему выбирают VideoVault?',
 		feature1: 'Быстрая и безопасная загрузка',
 		feature2: 'Поддержка множества форматов',
@@ -94,6 +96,7 @@ const translations: Record<string, Translations> = {
 		features: '功能',
 		about: '关于',
 		contact: '联系方式',
+		instructions: '指示',
 		whyChoose: '为什么选择 VideoVault？',
 		feature1: '快速安全的下载',
 		feature2: '支持多种格式',
@@ -278,6 +281,12 @@ const App = () => {
 									{t.contact}
 								</a>
 							</li>
+
+							<li>
+								<a href='#instructions' className='nav-link'>
+									{t.instructions}
+								</a>
+							</li>
 							<div className='settings'>
 								<div className='theme-toggle'>
 									<button
@@ -292,22 +301,7 @@ const App = () => {
 									currentLanguage={language}
 									onLanguageChange={handleLanguageChange}
 								/>
-								<div className='counter'>
-									<p>
-										<FaFire />
-										online:{' '}
-										<span id='current-visitors' className='visitors-count'>
-											0
-										</span>
-									</p>
-									<p>
-										<IoPerson />
-										visited:{' '}
-										<span id='total-visits' className='visits-count'>
-											0
-										</span>
-									</p>
-								</div>
+								<OnlineCounter />
 							</div>
 						</ul>
 					</nav>
@@ -317,12 +311,6 @@ const App = () => {
 			<main className='main-content'>
 				<div className='content-box'>
 					<h4 className='title'>{t.title}</h4>
-
-					<ThemeSwitcher isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
-					<LanguageSwitcher
-						currentLanguage={language}
-						onLanguageChange={handleLanguageChange}
-					/>
 
 					<input
 						type='text'
@@ -408,6 +396,9 @@ const App = () => {
 					</button>
 				</div>
 
+				<section id='instructions'>
+					<VideoPlayerInstructions />
+				</section>
 				<section id='features' className='features'>
 					<div className='container'>
 						<h3 className='section-title'>{t.whyChoose}</h3>

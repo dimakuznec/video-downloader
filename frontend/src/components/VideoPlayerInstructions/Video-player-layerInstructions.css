@@ -1,0 +1,91 @@
+.video-player-guide {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 55vh; /* Центрирование по вертикали */
+	text-align: center;
+	font-family: Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+.video-player-guide h1 {
+	margin-bottom: 20px;
+}
+
+.video-player-logos {
+	display: grid;
+	grid-template-columns: repeat(
+		auto-fit,
+		minmax(120px, 1fr)
+	); /* Адаптивная сетка */
+	gap: 20px;
+	justify-items: center; /* Центрирование элементов внутри */
+	width: 100%; /* Занять всю ширину контейнера */
+	max-width: 800px; /* Максимальная ширина */
+	margin-bottom: 20px;
+}
+
+.video-player-logos a {
+	text-decoration: none;
+	color: inherit;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	transition: transform 0.3s, box-shadow 0.3s; /* Плавный эффект рамки */
+	border: 2px solid transparent;
+	padding: 10px;
+	border-radius: 10px; /* Края рамки */
+}
+
+.video-player-logos a:hover {
+	transform: scale(1.1); /* Увеличение элемента */
+	box-shadow: 0 0 15px rgba(0, 123, 255, 0.6); /* Подсветка */
+	border: 2px solid #007bff; /* Становится шире и ярче */
+}
+
+.video-player-logos img {
+	width: 70px;
+	height: 70px;
+	margin-bottom: 5px;
+}
+
+.video-player-logos p {
+	font-size: 14px;
+	text-align: center;
+	margin: 0;
+}
+
+.video-player-text {
+	margin-bottom: 20px;
+	font-size: 16px;
+	line-height: 1.5;
+	max-width: 600px;
+}
+
+.video-player-buttons {
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+}
+
+.video-player-buttons button {
+	padding: 10px 20px;
+	background-color: #007bff;
+	color: #fff;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.3s, transform 0.2s;
+}
+
+.video-player-buttons button:hover:not(:disabled) {
+	background-color: #0056b3;
+	transform: scale(1.05); /* Легкое увеличение кнопки при наведении */
+}
+
+.video-player-buttons button:disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
+}

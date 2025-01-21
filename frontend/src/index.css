@@ -1,4 +1,5 @@
 @import './components/languageSwitcher/language-switcher.css';
+@import './components/VideoPlayerInstructions/Video-player-layerInstructions.css';
 * {
 	margin: 0;
 	padding: 0;
@@ -73,7 +74,8 @@ body.dark-theme .nav .nav-link:hover {
 body.dark-theme .main-content,
 body.dark-theme .features,
 body.dark-theme .about,
-body.dark-theme .contact {
+body.dark-theme .contact,
+body.dark-theme .instructions {
 	background-color: #1e1e1e;
 	color: #f5f5f5;
 }
@@ -90,7 +92,8 @@ body.dark-theme h3,
 body.dark-theme .main-content h3,
 body.dark-theme .features h3,
 body.dark-theme .about h3,
-body.dark-theme .contact h3 {
+body.dark-theme .contact h3,
+body.dark-theme .instructions h3 {
 	color: #ffffff; /* Белый текст */
 	text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
@@ -99,7 +102,8 @@ body.dark-theme p,
 body.dark-theme .main-content p,
 body.dark-theme .features p,
 body.dark-theme .about p,
-body.dark-theme .contact p {
+body.dark-theme .contact p,
+body.dark-theme .instructions p {
 	color: #ffffff; /* Белый текст */
 	text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
@@ -107,7 +111,8 @@ body.dark-theme .contact p {
 /* Пункты списка */
 body.dark-theme .features ul li,
 body.dark-theme .about ul li,
-body.dark-theme .contact ul li {
+body.dark-theme .contact ul li,
+body.dark-theme .instructions ul li {
 	color: #ffffff;
 	text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 	position: relative;
@@ -116,7 +121,8 @@ body.dark-theme .contact ul li {
 
 body.dark-theme .features ul li::before,
 body.dark-theme .about ul li::before,
-body.dark-theme .contact ul li::before {
+body.dark-theme .contact ul li::before,
+body.dark-theme .instructions ul li::before {
 	color: #bb86fc;
 }
 
