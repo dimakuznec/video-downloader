@@ -1,5 +1,6 @@
 @import './components/languageSwitcher/language-switcher.css';
 @import './components/VideoPlayerInstructions/Video-player-layerInstructions.css';
+
 * {
 	margin: 0;
 	padding: 0;

@@ -31,6 +31,8 @@ interface Translations {
 	feature3?: string
 	aboutTitle?: string
 	aboutText?: string
+	contactText?: string
+	copyright?: string
 }
 
 const translations: Record<string, Translations> = {
@@ -56,6 +58,8 @@ const translations: Record<string, Translations> = {
 		feature3: 'User-friendly interface',
 		aboutTitle: 'About VideoVault',
 		aboutText: 'VideoVault is the ultimate tool for downloading videos.',
+		contactText: 'Have questions? Reach out to us at ',
+		copyright: '© 2025 VideoVault. All rights reserved.',
 	},
 	ru: {
 		title: 'Скачиватель Видео',
@@ -80,6 +84,8 @@ const translations: Record<string, Translations> = {
 		feature3: 'Удобный интерфейс',
 		aboutTitle: 'О VideoVault',
 		aboutText: 'VideoVault - лучший инструмент для скачивания видео.',
+		contactText: 'Есть вопросы? Обращайтесь к нам по адресу  ',
+		copyright: '© 2025 VideoVault. Все права защищены.',
 	},
 	zh: {
 		title: '视频下载器',
@@ -103,6 +109,8 @@ const translations: Record<string, Translations> = {
 		feature3: '用户友好的界面',
 		aboutTitle: '关于 VideoVault',
 		aboutText: 'VideoVault 是终极视频下载工具。',
+		contactText: '有问题吗？随时通过 与我们联系。',
+		copyright: '© 2025 VideoVault。版权所有。',
 	},
 }
 
@@ -128,9 +136,17 @@ const App = () => {
 	const [completed, setCompleted] = useState<boolean>(false)
 	const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
 	const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
-	const [language, setLanguage] = useState<string>('en')
+	// const [language, setLanguage] = useState<string>('en')
 	const [downloadAudio, setDownloadAudio] = useState<boolean>(false)
 	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
+	// const t = translations[language]
+
+	const [language, setLanguage] = useState<'en' | 'ru' | 'zh'>('en')
+
+	// Функция изменения языка
+	const handleLanguageChange = (selectedLanguage: 'en' | 'ru' | 'zh') => {
+		setLanguage(selectedLanguage)
+	}
 	const t = translations[language]
 
 	useEffect(() => {
@@ -240,9 +256,9 @@ const App = () => {
 		toast.info('Download cancelled.')
 	}
 
-	const handleLanguageChange = (selectedLanguage: string) => {
-		setLanguage(selectedLanguage)
-	}
+	// const handleLanguageChange = (selectedLanguage: string) => {
+	// 	setLanguage(selectedLanguage)
+	// }
 
 	return (
 		<div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
@@ -397,7 +413,7 @@ const App = () => {
 				</div>
 
 				<section id='instructions'>
-					<VideoPlayerInstructions />
+					<VideoPlayerInstructions language={language} />
 				</section>
 				<section id='features' className='features'>
 					<div className='container'>
@@ -421,7 +437,7 @@ const App = () => {
 					<div className='container'>
 						<h3 className='section-title'>{t.contact}</h3>
 						<p>
-							Have questions? Reach out to us at{' '}
+							{t.contactText}
 							<a href='mailto:support@videovault.com'>support@videovault.com</a>
 						</p>
 					</div>
@@ -430,7 +446,7 @@ const App = () => {
 
 			<footer className='footer'>
 				<div className='container'>
-					<p>© 2025 VideoVault. All rights reserved.</p>
+					<p>{t.copyright}</p>
 				</div>
 			</footer>
 		</div>

@@ -1,16 +1,14 @@
 .language-switch {
+	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 10px;
 }
 
-.language-switch .language-label {
-	font-size: 1rem;
-	margin-right: 10px;
-	color: inherit; /* Унаследовать цвет от родителя */
-}
-
 .language-switch .language-select {
+	display: flex;
+	align-items: center;
+	gap: 5px;
 	padding: 5px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
@@ -18,14 +16,48 @@
 	background-color: #fff;
 	color: #333;
 	transition: border-color 0.3s ease, box-shadow 0.3s ease;
+	cursor: pointer;
 }
 
-.language-switch .language-select:focus {
-	outline: none;
-	border-color: #007bff;
-	box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+.language-switch .language-select img {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
 }
 
+.language-switch .dropdown {
+	position: absolute;
+	top: 100%; /* Сдвигаем выпадающий список вниз */
+	left: 0;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	width: 150px;
+	z-index: 1000;
+	margin-top: 5px; /* Добавим отступ для корректного отображения */
+}
+
+.language-switch .dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 5px 10px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.language-switch .dropdown-item:hover {
+	background-color: #f0f0f0;
+}
+
+.language-switch .dropdown-item img {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+}
+
+/* Темная тема */
 body.dark-theme .language-switch .language-select {
 	background-color: #2e2e2e;
 	color: #fff;
@@ -35,4 +67,18 @@ body.dark-theme .language-switch .language-select {
 body.dark-theme .language-switch .language-select:focus {
 	border-color: #bb86fc;
 	box-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
+}
+
+body.dark-theme .language-switch .dropdown {
+	background-color: #3e3e3e;
+	border-color: #555;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme .language-switch .dropdown-item {
+	color: #fff;
+}
+
+body.dark-theme .language-switch .dropdown-item:hover {
+	background-color: #555;
 }
