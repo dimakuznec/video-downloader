@@ -184,6 +184,62 @@ body.dark-theme .theme-button:hover {
 	background-color: #9a67ea;
 }
 
+/* Общие стили для навигации */
+.nav {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-wrap: wrap; /* Позволяет переносить элементы на новую строку */
+	gap: 20px; /* Расстояние между элементами */
+	width: 100%;
+	background-color: inherit; /* Унаследовать цвет фона */
+	padding: 10px 20px;
+}
+
+/* Стили для списка навигации */
+.nav-list {
+	display: flex;
+	flex-wrap: wrap; /* Перенос на новую строку при недостатке места */
+	gap: 15px;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	justify-content: center; /* Центровка элементов */
+}
+
+/* Стили для ссылок */
+.nav-link {
+	text-decoration: none;
+	color: inherit; /* Унаследовать цвет */
+	font-size: 1rem;
+	font-weight: 500;
+	transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+	color: #007bff; /* Голубой цвет при наведении */
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+	.nav {
+		flex-direction: column; /* Элементы располагаются вертикально */
+		align-items: center;
+	}
+
+	.nav-list {
+		flex-direction: column; /* Вертикальное направление списка */
+		gap: 10px;
+	}
+}
+
+/* Планшетная версия */
+@media (min-width: 769px) and (max-width: 1024px) {
+	.nav-list {
+		justify-content: space-around; /* Равномерное распределение элементов */
+	}
+}
+
 .features-list li {
 	position: relative;
 	padding-left: 30px; /* Достаточно места для галочки */
