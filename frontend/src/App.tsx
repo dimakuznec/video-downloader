@@ -119,6 +119,8 @@ interface VideoFormat {
 	quality: string
 	ext: string
 	resolution: number | string
+	vcodec: string // Добавляем это свойство
+	type: string
 }
 
 interface VideoInfo {
@@ -136,10 +138,8 @@ const App = () => {
 	const [completed, setCompleted] = useState<boolean>(false)
 	const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
 	const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
-	// const [language, setLanguage] = useState<string>('en')
 	const [downloadAudio, setDownloadAudio] = useState<boolean>(false)
 	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-	// const t = translations[language]
 
 	const [language, setLanguage] = useState<'en' | 'ru' | 'zh'>('en')
 
@@ -180,16 +180,29 @@ const App = () => {
 				'http://localhost:8000/get_video_info/',
 				new URLSearchParams({ url })
 			)
-			setVideoInfo(response.data)
-			toast.success('Video information fetched successfully.')
+			const data = response.data
+
+			// Добавляем фильтрацию форматов
+			const filteredFormats = data.formats.filter((format: VideoFormat) => {
+				// Пример: отфильтровываем форматы без разрешения или аудио форматы
+				return format.resolution !== 'N/A' && format.type !== 'Аудио'
+			})
+
+			const formatsWithTypes = filteredFormats.map((format: VideoFormat) => ({
+				...format,
+				type: format.vcodec === 'none' ? 'Аудио' : 'Видео',
+			}))
+
+			setVideoInfo({ ...data, formats: formatsWithTypes })
+			toast.success('Информация о видео успешно получена.')
 		} catch (error) {
-			toast.error('Error fetching video info.')
+			toast.error('Ошибка при получении информации о видео.')
 		}
 	}
 
 	const handleDownload = async () => {
 		if (!videoFormatId) {
-			toast.error('Please select video format.')
+			toast.error('Выберите формат видео.')
 			return
 		}
 
@@ -206,8 +219,8 @@ const App = () => {
 			)
 
 			setProgress(0)
-			setMessage('Starting download...')
-			toast.info('Please wait while we download your video.')
+			setMessage('Начало загрузки...')
+			toast.info('Подождите, пока мы скачиваем ваше видео.')
 
 			const id = setInterval(async () => {
 				try {
@@ -228,13 +241,13 @@ const App = () => {
 					} else if (progressData.progress === -1) {
 						clearInterval(id)
 						setLoading(false)
-						toast.error('Download error. Please try another format.')
+						toast.error('Ошибка загрузки. Попробуйте другой формат.')
 					}
 				} catch (error) {
 					clearInterval(id)
 					setLoading(false)
 					toast.error(
-						'Error fetching download progress. Please try another format.'
+						'Ошибка при получении прогресса загрузки. Попробуйте другой формат.'
 					)
 				}
 			}, 500)
@@ -242,7 +255,7 @@ const App = () => {
 			setIntervalId(id)
 		} catch (error) {
 			setLoading(false)
-			toast.error('Error during download. Please try another format.')
+			toast.error('Ошибка при загрузке. Попробуйте другой формат.')
 		}
 	}
 
@@ -252,13 +265,9 @@ const App = () => {
 		}
 		setLoading(false)
 		setProgress(0)
-		setMessage('Download cancelled.')
-		toast.info('Download cancelled.')
+		setMessage('Загрузка отменена.')
+		toast.info('Загрузка отменена.')
 	}
-
-	// const handleLanguageChange = (selectedLanguage: string) => {
-	// 	setLanguage(selectedLanguage)
-	// }
 
 	return (
 		<div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
@@ -297,7 +306,6 @@ const App = () => {
 									{t.contact}
 								</a>
 							</li>
-
 							<li>
 								<a href='#instructions' className='nav-link'>
 									{t.instructions}
@@ -354,9 +362,10 @@ const App = () => {
 								onChange={e => setVideoFormatId(e.target.value)}
 							>
 								<option value=''>{t.selectFormat}</option>
-								{videoInfo.formats.map(format => (
+								{videoInfo.formats.map((format: VideoFormat) => (
 									<option key={format.format_id} value={format.format_id}>
-										{format.quality} ({format.ext}) - {format.resolution}p
+										{format.quality} ({format.ext}) - {format.resolution}p -{' '}
+										{format.type}
 									</option>
 								))}
 							</select>
