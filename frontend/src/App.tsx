@@ -119,7 +119,7 @@ interface VideoFormat {
 	quality: string
 	ext: string
 	resolution: number | string
-	vcodec: string // Добавляем это свойство
+	vcodec: string
 	type: string
 }
 
@@ -143,7 +143,7 @@ const App = () => {
 
 	const [language, setLanguage] = useState<'en' | 'ru' | 'zh'>('en')
 
-	// Функция изменения языка
+	// Function to change the language
 	const handleLanguageChange = (selectedLanguage: 'en' | 'ru' | 'zh') => {
 		setLanguage(selectedLanguage)
 	}
@@ -182,27 +182,16 @@ const App = () => {
 			)
 			const data = response.data
 
-			// Добавляем фильтрацию форматов
-			const filteredFormats = data.formats.filter((format: VideoFormat) => {
-				// Пример: отфильтровываем форматы без разрешения или аудио форматы
-				return format.resolution !== 'N/A' && format.type !== 'Аудио'
-			})
-
-			const formatsWithTypes = filteredFormats.map((format: VideoFormat) => ({
-				...format,
-				type: format.vcodec === 'none' ? 'Аудио' : 'Видео',
-			}))
-
-			setVideoInfo({ ...data, formats: formatsWithTypes })
-			toast.success('Информация о видео успешно получена.')
+			setVideoInfo(data)
+			toast.success('Successfully fetched video info.')
 		} catch (error) {
-			toast.error('Ошибка при получении информации о видео.')
+			toast.error('Error fetching video info.')
 		}
 	}
 
 	const handleDownload = async () => {
 		if (!videoFormatId) {
-			toast.error('Выберите формат видео.')
+			toast.error('Please select a video format.')
 			return
 		}
 
@@ -219,8 +208,8 @@ const App = () => {
 			)
 
 			setProgress(0)
-			setMessage('Начало загрузки...')
-			toast.info('Подождите, пока мы скачиваем ваше видео.')
+			setMessage('Download started...')
+			toast.info('Please wait while your video is being downloaded.')
 
 			const id = setInterval(async () => {
 				try {
@@ -241,13 +230,13 @@ const App = () => {
 					} else if (progressData.progress === -1) {
 						clearInterval(id)
 						setLoading(false)
-						toast.error('Ошибка загрузки. Попробуйте другой формат.')
+						toast.error('Download error. Please try a different format.')
 					}
 				} catch (error) {
 					clearInterval(id)
 					setLoading(false)
 					toast.error(
-						'Ошибка при получении прогресса загрузки. Попробуйте другой формат.'
+						'Error fetching download progress. Please try a different format.'
 					)
 				}
 			}, 500)
@@ -255,7 +244,7 @@ const App = () => {
 			setIntervalId(id)
 		} catch (error) {
 			setLoading(false)
-			toast.error('Ошибка при загрузке. Попробуйте другой формат.')
+			toast.error('Error during download. Please try a different format.')
 		}
 	}
 
@@ -265,8 +254,8 @@ const App = () => {
 		}
 		setLoading(false)
 		setProgress(0)
-		setMessage('Загрузка отменена.')
-		toast.info('Загрузка отменена.')
+		setMessage('Download canceled.')
+		toast.info('Download canceled.')
 	}
 
 	return (

@@ -59,17 +59,18 @@ def get_video_info(url: str):
         ydl_opts = {"quiet": True}
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            # Фильтрация форматов
             formats = [{
                 "format_id": f["format_id"],
                 "quality": f.get("format_note", "N/A"),
                 "ext": f["ext"],
                 "resolution": f.get("height", "N/A"),
-                "vcodec": f.get("vcodec", "none")
-            } for f in info["formats"] if f.get("height", "N/A") != "N/A" and f.get("vcodec", "none") != "none"]
+                "vcodec": f.get("vcodec", "none"),
+                "type": "Audio" if f.get("vcodec", "none") == "none" else "Video"
+            } for f in info["formats"]]
+            
             return {"title": info["title"], "formats": formats}
     except Exception as e:
-        logger.error(f"Ошибка при получении информации о видео: {e}")
+        logger.error(f"Error fetching video info: {e}")
         return None
 
 @app.post("/get_video_info/")
