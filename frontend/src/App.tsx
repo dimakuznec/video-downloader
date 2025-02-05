@@ -136,7 +136,6 @@ const App = () => {
 	const [message, setMessage] = useState<string>('')
 	const [loading, setLoading] = useState<boolean>(false)
 	const [completed, setCompleted] = useState<boolean>(false)
-	const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
 	const [isDarkMode, setIsDarkMode] = useState<boolean>(false)
 	const [downloadAudio, setDownloadAudio] = useState<boolean>(false)
 	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
@@ -211,37 +210,31 @@ const App = () => {
 			setMessage('Download started...')
 			toast.info('Please wait while your video is being downloaded.')
 
-			const id = setInterval(async () => {
-				try {
-					const progressResponse = await axios.get(
-						'http://localhost:8000/progress/'
-					)
-					const progressData = progressResponse.data
-					setProgress(progressData.progress)
-					setMessage(
-						`${progressData.message} (${progressData.progress.toFixed(2)}%)`
-					)
+			// Подключаемся к WebSocket для получения обновлений прогресса
+			const socket = new WebSocket('ws://127.0.0.1:8000/ws/progress/')
 
-					if (progressData.progress >= 100 || progressData.completed) {
-						clearInterval(id)
-						setLoading(false)
-						setCompleted(true)
-						toast.success(t.downloadComplete)
-					} else if (progressData.progress === -1) {
-						clearInterval(id)
-						setLoading(false)
-						toast.error('Download error. Please try a different format.')
-					}
-				} catch (error) {
-					clearInterval(id)
+			socket.onmessage = function (event) {
+				const data = JSON.parse(event.data)
+				setProgress(data.progress)
+				setMessage(`${data.message} (${data.progress.toFixed(2)}%)`)
+
+				if (data.progress >= 100 || data.completed) {
+					socket.close()
 					setLoading(false)
-					toast.error(
-						'Error fetching download progress. Please try a different format.'
-					)
+					setCompleted(true)
+					toast.success(t.downloadComplete)
+				} else if (data.progress === -1) {
+					socket.close()
+					setLoading(false)
+					toast.error('Download error. Please try a different format.')
 				}
-			}, 500)
+			}
 
-			setIntervalId(id)
+			socket.onerror = function (error) {
+				socket.close()
+				setLoading(false)
+				toast.error('WebSocket error. Please try again.')
+			}
 		} catch (error) {
 			setLoading(false)
 			toast.error('Error during download. Please try a different format.')
@@ -249,9 +242,6 @@ const App = () => {
 	}
 
 	const cancelDownload = () => {
-		if (intervalId) {
-			clearInterval(intervalId)
-		}
 		setLoading(false)
 		setProgress(0)
 		setMessage('Download canceled.')

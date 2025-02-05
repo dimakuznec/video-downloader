@@ -1,7 +1,8 @@
 import logging
 import os
 import subprocess
-from fastapi import FastAPI, HTTPException, Form, BackgroundTasks
+import asyncio
+from fastapi import FastAPI, HTTPException, Form, BackgroundTasks, WebSocket, WebSocketDisconnect
 from yt_dlp import YoutubeDL
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
@@ -76,9 +77,19 @@ def get_video_info(url: str):
 @app.post("/get_video_info/")
 async def video_info(url: str = Form(...)):
     video_info = get_video_info(url)
-    if video_info:
+    if (video_info):
         return video_info
     raise HTTPException(status_code=400, detail="Не удалось получить информацию о видео")
+
+@app.websocket("/ws/progress/")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            await websocket.send_json(download_progress)
+            await asyncio.sleep(1)  # Частота обновления прогресса
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected")
 
 @app.post("/download_video/")
 async def download_video(
@@ -131,7 +142,6 @@ async def download_video(
 
                 output_file = os.path.join(DOWNLOAD_DIR, f"final_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
 
-                # Ограничение ресурсов ffmpeg и ускорение обработки
                 ffmpeg_command = [FFMPEG_PATH, '-i', video_file, '-i', audio_file, '-c:v', 'copy', '-c:a', 'aac', '-threads', '4', '-preset', 'ultrafast', output_file]
                 subprocess.run(ffmpeg_command, shell=True)
 
@@ -143,7 +153,3 @@ async def download_video(
 
     background_tasks.add_task(download_task, url, video_format_id, download_audio)
     return {"message": "Загрузка началась в фоне. Пожалуйста, ожидайте."}
-
-@app.get("/progress/")
-async def get_progress():
-    return download_progress
