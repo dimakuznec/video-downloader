@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ### 3. Запуск проекта
 #### Запуск Frontend
 ```sh
-npm run dev
+ npm start
 ```
 
 #### Запуск Backend
