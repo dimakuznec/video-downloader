@@ -26,7 +26,7 @@
 
 ### 1. Клонирование репозитория
 ```sh
-git clone https://github.com/your-repo/VideoVault.git
+git clone https://github.com/dimakuznec/video-downloader.git
 cd VideoVault
 ```
 
@@ -59,5 +59,5 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ### Установка
 ```sh
-pip install git+https://github.com/Flowseal/zapret-discord-youtube.git
+pip install git+https://github.com/dimakuznec/video-downloader.git
 ```
