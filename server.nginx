@@ -1,0 +1,31 @@
+# Основной сервер
+server {
+    listen 80;
+    server_name VideoVault.com www.VideoVault.com; # Ваш домен
+
+    # Укажите директорию для фронтенда
+    root /var/www/videovault/build; # Путь к папке 'build' вашего фронтенда
+    index index.html;
+
+    # Обработка запросов для одностраничного приложения (SPA)
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Проксирование запросов на backend
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000; # Ваш backend-сервер (FastAPI)
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Логи ошибок и доступа
+    error_log /var/log/nginx/videovault_error.log;
+    access_log /var/log/nginx/videovault_access.log;
+
+    # Ограничение размера запроса
+    client_max_body_size 50M; # Если ваш проект позволяет загружать крупные файлы
+}
+
