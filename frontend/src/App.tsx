@@ -426,7 +426,9 @@ const App = () => {
 						<h3 className='section-title'>{t.contact}</h3>
 						<p>
 							{t.contactText}
-							<a href='mailto:support@videovault.com'>support@videovault.com</a>
+							<a href='mailto:helpvideovault@gmail.com'>
+								helpvideovault@gmail.com
+							</a>
 						</p>
 					</div>
 				</section>
