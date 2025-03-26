@@ -5,10 +5,6 @@
 /.pnp
 .pnp.js
 
-# Server configuration
-/server.nginx
-
-
 # testing
 /coverage
 
