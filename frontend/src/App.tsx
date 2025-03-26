@@ -430,6 +430,17 @@ const App = () => {
 								helpvideovault@gmail.com
 							</a>
 						</p>
+						<br />
+						<p>
+							{t.contactText}
+							<a
+								href='https://t.me/IT_juniorMy'
+								target='_blank'
+								rel='noopener noreferrer'
+							>
+								Telegram
+							</a>
+						</p>
 					</div>
 				</section>
 			</main>
